@@ -14,7 +14,7 @@
                     {!! sortableUrlLink($name, array('field' => $collection->eloquentTableSort[$key], 'sort'=>'asc')) !!}
                 @else
                     {{-- Looks like we don't have any header modifications, we'll just output the name --}}
-                    {{ ucfirst($name) }}
+                    {{ ($name) }}
                 @endif
             </th>
         @endforeach
