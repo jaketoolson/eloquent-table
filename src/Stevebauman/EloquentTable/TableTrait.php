@@ -147,12 +147,11 @@ trait TableTrait
      */
     public function render($view = '')
     {
-        // If no attributes have been set, we'll set them to the configuration defaults
-        if (count($this->eloquentTableAttributes) === 0) {
-            $attributes = Config::get('eloquenttable'.EloquentTableServiceProvider::$configSeparator.'default_table_attributes', []);
-
-            $this->attributes($attributes);
+        $attributes = Config::get('eloquenttable'.EloquentTableServiceProvider::$configSeparator.'default_table_attributes', []);
+        if (count($this->eloquentTableAttributes) <> 0) {
+            $attributes = $attributes + $this->htmlAttributesToArray($this->eloquentTableAttributes);
         }
+        $this->attributes($attributes);
 
         /*
          * If a view isn't specified, we'll check the configuration
@@ -442,5 +441,32 @@ trait TableTrait
         }
 
         return $attributeString;
+    }
+    
+    /**
+     * @param $text
+     *
+     * @return array
+     */
+    function htmlAttributesToArray($text)
+    {
+        $attributes = array();
+        $pattern = '#(?(DEFINE)
+            (?<name>[a-zA-Z][a-zA-Z0-9-:]*)
+            (?<value_double>"[^"]+")
+            (?<value_single>\'[^\']+\')
+            (?<value_none>[^\s>]+)
+            (?<value>((?&value_double)|(?&value_single)|(?&value_none)))
+        )
+        (?<n>(?&name))(=(?<v>(?&value)))?#xs';
+        if (preg_match_all($pattern, $text, $matches, PREG_SET_ORDER)) {
+            foreach ($matches as $match) {
+                $attributes[$match['n']] = isset($match['v'])
+                    ? trim($match['v'], '\'"')
+                    : null;
+            }
+        }
+
+        return $attributes;
     }
 }
